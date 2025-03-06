@@ -1,20 +1,19 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const winston = require('winston');
 const morgan = require('morgan');
 const cors = require('cors');
+const winston = require('winston');
+// const jwt = require('jsonwebtoken');
+// const bcrypt = require('bcryptjs');
+
 const app = express();
 const PORT = 4000;
 
-
 app.use(cors());
-app.use(express.json());
-
-// Morgan middleware for logging HTTP requests
 app.use(morgan('combined'));
-
-// Setting up Winston logger for activity logging
+app.use((req, res, next) => {
+  logger.info(`Request to ${req.method} ${req.originalUrl}`);
+  next();
+});
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -32,15 +31,12 @@ const logger = winston.createLogger({
   ]
 });
 
-// Custom middleware to log activity in the app
-app.use((req, res, next) => {
-  logger.info(`Request to ${req.method} ${req.originalUrl}`);
-  next();
-});
+const userRoutes = require('./routes/user.routes');
+const productRoutes = require('./routes/product.routes');
 
-app.get('/', (req, res) => {
-  res.status(200).json('Welcome, your app is working well');
-});
+app.get('/', (req, res) => { res.status(200).json('Welcome, your app is working well') });
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/products', productRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
